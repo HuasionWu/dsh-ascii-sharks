@@ -23,15 +23,6 @@ interface TunerOptions {
 
 const PANEL_WIDTH = 268;
 const ACCENT = "#33c8cc";
-/**
- * Side-view shark facing right: pointed snout, tall triangular dorsal fin and a
- * crescent tail. Drawn as one filled path so it stays legible at 20px, where an
- * emoji or a many-part drawing turns to mush.
- */
-const SHARK_GLYPH =
-  "M23.4 12C20.6 10.7 17.8 10 15 9.8L12.8 4.6C11.8 7 11.2 8.8 10.8 9.7" +
-  "C9.4 9.8 8 9.9 6.6 10.1L2.2 6.2L4.6 12L2.2 17.8L6.6 13.9C8.6 14.1 10.4 14.2 11.9 14.3" +
-  "L10 17.4L13 14.5C16.2 14.3 20 13.4 23.4 12Z";
 const SPECIES_LABELS: Record<string, string> = {
   classic: "经典",
   hammerhead: "锤头",
@@ -127,28 +118,13 @@ export function createTuner(options: TunerOptions): TunerHandle {
     "box-shadow:0 2px 10px rgba(0,0,0,.28)",
   ].join(";");
 
-  const sharkIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  sharkIcon.setAttribute("viewBox", "0 0 25 24");
-  sharkIcon.setAttribute("width", "20");
-  sharkIcon.setAttribute("height", "20");
-  sharkIcon.setAttribute("fill", "#fff");
-  sharkIcon.setAttribute("aria-hidden", "true");
-  const sharkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  sharkPath.setAttribute("d", SHARK_GLYPH);
-  sharkIcon.append(sharkPath);
+  const sharkIcon = document.createElement("span");
+  sharkIcon.textContent = "🦈";
+  sharkIcon.style.cssText = "font-size:18px;line-height:1;";
 
-  const closeIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  closeIcon.setAttribute("viewBox", "0 0 16 16");
-  closeIcon.setAttribute("width", "15");
-  closeIcon.setAttribute("height", "15");
-  closeIcon.setAttribute("fill", "none");
-  closeIcon.setAttribute("aria-hidden", "true");
-  const closePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  closePath.setAttribute("d", "M4 4l8 8M12 4l-8 8");
-  closePath.setAttribute("stroke", "#fff");
-  closePath.setAttribute("stroke-width", "1.9");
-  closePath.setAttribute("stroke-linecap", "round");
-  closeIcon.append(closePath);
+  const closeIcon = document.createElement("span");
+  closeIcon.textContent = "✕";
+  closeIcon.style.cssText = "font-size:16px;line-height:1;color:#fff;";
 
   gear.append(sharkIcon);
 

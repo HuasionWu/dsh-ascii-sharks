@@ -1,6 +1,6 @@
 {
   "name": "dsh-ascii-sharks",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "ASCII sharks and schooling fish swimming behind the DeepSeek Harness conversation column.",
   "type": "module",
   "main": "index.js",

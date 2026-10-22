@@ -7,7 +7,7 @@
 A DeepSeek Harness wallpaper plugin, ported from
 [stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks).
 
-`dsh-ascii-sharks` v0.1.2 · [HuasionWu/dsh-ascii-sharks](https://github.com/HuasionWu/dsh-ascii-sharks)
+`dsh-ascii-sharks` v0.1.3 · [HuasionWu/dsh-ascii-sharks](https://github.com/HuasionWu/dsh-ascii-sharks)
 
 </div>
 
@@ -25,7 +25,7 @@ A DeepSeek Harness wallpaper plugin, ported from
 - **透明叠层**：画布只画墨，宿主自己的背景色透上来，深浅主题都成立。
 - **零运行时依赖**：React 由宿主提供，包内只有一份构建好的 `lib/client.js`。
 - **首屏淡入**：新会话空态（hero）下满强度，进入对话后自动降到"若有若无"。
-- **可调**：右下角的蓝色鲨鱼按钮（与发送按钮同尺寸同配色）打开设置面板，改完立即生效并写入 `localStorage`。
+- **可调**：右下角的蓝色 🦈 按钮（与发送按钮同尺寸同配色）打开设置面板，改完立即生效并写入 `localStorage`。
 
 ## 安装
 
