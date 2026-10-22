@@ -7,7 +7,7 @@
 A DeepSeek Harness wallpaper plugin, ported from
 [stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks).
 
-`dsh-ascii-sharks` v0.1.0 · [HuasionWu/dsh-ascii-sharks](https://github.com/HuasionWu/dsh-ascii-sharks)
+`dsh-ascii-sharks` v0.1.1 · [HuasionWu/dsh-ascii-sharks](https://github.com/HuasionWu/dsh-ascii-sharks)
 
 </div>
 
