@@ -107,10 +107,14 @@ export function writeSettings(settings: Settings) {
 /**
  * Build the shark roster. Sizes step down from the first entry so the biggest
  * shark sets the scale and the rest read as smaller, deeper animals.
+ *
+ * The count comes straight from `sharkCount`; the kind list is cycled to fill
+ * it. Capping the count at `kinds.length` used to make the slider look dead
+ * whenever a single kind was selected (one kind → always one shark).
  */
 export function sharkSpecs(settings: Settings): SharkSpec[] {
   const kinds = settings.sharks.length ? settings.sharks : DEFAULT_SETTINGS.sharks;
-  const count = Math.min(settings.sharkCount, kinds.length);
+  const count = Math.round(settings.sharkCount);
   const out: SharkSpec[] = [];
   for (let i = 0; i < count; i++) {
     out.push({ kind: kinds[i % kinds.length], size: Math.max(0.55, 1 - i * 0.12) });
