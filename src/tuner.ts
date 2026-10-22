@@ -23,6 +23,15 @@ interface TunerOptions {
 
 const PANEL_WIDTH = 268;
 const ACCENT = "#33c8cc";
+/**
+ * Side-view shark facing right: pointed snout, tall triangular dorsal fin and a
+ * crescent tail. Drawn as one filled path so it stays legible at 20px, where an
+ * emoji or a many-part drawing turns to mush.
+ */
+const SHARK_GLYPH =
+  "M23.4 12C20.6 10.7 17.8 10 15 9.8L12.8 4.6C11.8 7 11.2 8.8 10.8 9.7" +
+  "C9.4 9.8 8 9.9 6.6 10.1L2.2 6.2L4.6 12L2.2 17.8L6.6 13.9C8.6 14.1 10.4 14.2 11.9 14.3" +
+  "L10 17.4L13 14.5C16.2 14.3 20 13.4 23.4 12Z";
 const SPECIES_LABELS: Record<string, string> = {
   classic: "经典",
   hammerhead: "锤头",
@@ -96,26 +105,52 @@ export function createTuner(options: TunerOptions): TunerHandle {
   wrap.setAttribute("data-dsh-ascii-sharks-tuner", "");
   wrap.style.cssText = "position:fixed;z-index:2147483000;pointer-events:none;";
 
+  // Matches the composer's send button (34px, pill radius, solid accent fill) so
+  // the entry point reads as part of the app instead of a faint decoration.
   const gear = document.createElement("button");
   gear.type = "button";
   gear.title = "ASCII Sharks";
   gear.setAttribute("aria-label", "ASCII Sharks 壁纸设置");
-  gear.textContent = "🦈";
   gear.style.cssText = [
     "pointer-events:auto",
-    "width:32px",
-    "height:32px",
-    "border-radius:50%",
-    "border:1px solid rgba(255,255,255,.14)",
-    "background:rgba(12,18,30,.72)",
-    "color:#dbe6f8",
-    "font-size:15px",
+    "width:34px",
+    "height:34px",
+    "padding:0",
+    "border-radius:999px",
+    "border:none",
+    "background:rgb(122,170,255)",
+    "display:grid",
+    "place-items:center",
     "line-height:1",
     "cursor:pointer",
-    "opacity:.42",
-    "transition:opacity .18s ease",
-    "backdrop-filter:blur(6px)",
+    "transition:filter .18s ease,transform .18s ease",
+    "box-shadow:0 2px 10px rgba(0,0,0,.28)",
   ].join(";");
+
+  const sharkIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  sharkIcon.setAttribute("viewBox", "0 0 25 24");
+  sharkIcon.setAttribute("width", "20");
+  sharkIcon.setAttribute("height", "20");
+  sharkIcon.setAttribute("fill", "#fff");
+  sharkIcon.setAttribute("aria-hidden", "true");
+  const sharkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  sharkPath.setAttribute("d", SHARK_GLYPH);
+  sharkIcon.append(sharkPath);
+
+  const closeIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  closeIcon.setAttribute("viewBox", "0 0 16 16");
+  closeIcon.setAttribute("width", "15");
+  closeIcon.setAttribute("height", "15");
+  closeIcon.setAttribute("fill", "none");
+  closeIcon.setAttribute("aria-hidden", "true");
+  const closePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  closePath.setAttribute("d", "M4 4l8 8M12 4l-8 8");
+  closePath.setAttribute("stroke", "#fff");
+  closePath.setAttribute("stroke-width", "1.9");
+  closePath.setAttribute("stroke-linecap", "round");
+  closeIcon.append(closePath);
+
+  gear.append(sharkIcon);
 
   const panel = document.createElement("div");
   panel.style.cssText = [
@@ -207,13 +242,16 @@ export function createTuner(options: TunerOptions): TunerHandle {
   const setOpen = (next: boolean) => {
     open = next;
     panel.style.display = next ? "block" : "none";
-    gear.style.opacity = next ? "1" : ".42";
-    gear.textContent = next ? "✕" : "🦈";
+    gear.replaceChildren(next ? closeIcon : sharkIcon);
+    gear.setAttribute("aria-expanded", next ? "true" : "false");
   };
+  gear.setAttribute("aria-expanded", "false");
   gear.addEventListener("click", () => setOpen(!open));
-  gear.addEventListener("mouseenter", () => (gear.style.opacity = "1"));
+  gear.addEventListener("mouseenter", () => {
+    gear.style.filter = "brightness(1.08)";
+  });
   gear.addEventListener("mouseleave", () => {
-    if (!open) gear.style.opacity = ".42";
+    gear.style.filter = "";
   });
   wrap.append(gear, panel);
 
