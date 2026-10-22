@@ -168,6 +168,22 @@ function apply(ctx: PluginContext) {
         },
       });
 
+      // With theme "auto" the palette follows the app's own surface. The shell
+      // flips a `data-ds-dark-theme` attribute on <body>, so watch it and
+      // repaint only when the resolved theme actually changed.
+      let currentTheme = paletteOptions(settings).theme;
+      const followTheme = () => {
+        const next = paletteOptions(settings);
+        if (next.theme === currentTheme) return;
+        currentTheme = next.theme;
+        engine.setPalette(next);
+      };
+      const themeObserver = new MutationObserver(followTheme);
+      themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["data-ds-dark-theme", "class", "style"],
+      });
+
       let syncFrame = 0;
       let lastKey = "";
       // Keep the layer glued to the column: the conversation body scrolls, and
@@ -193,6 +209,7 @@ function apply(ctx: PluginContext) {
         get: () => settings,
         set: (next) => {
           settings = normalizeSettings(next);
+          currentTheme = paletteOptions(settings).theme;
           applySettings(engine, settings);
           writeSettings(settings);
           tuner.sync(settings);
@@ -206,6 +223,7 @@ function apply(ctx: PluginContext) {
 
       return () => {
         engine.destroy();
+        themeObserver.disconnect();
         cancelAnimationFrame(syncFrame);
         tuner.destroy();
         canvas.remove();
