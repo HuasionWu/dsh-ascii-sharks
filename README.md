@@ -9,6 +9,8 @@ A DeepSeek Harness wallpaper plugin, ported from
 
 </div>
 
+![深色主题：鲨鱼与鱼群在对话列背后巡游](docs/dark.png)
+
 ---
 
 ## 它是什么
@@ -40,6 +42,10 @@ dsh plugin --profile desktop add .
 ```
 
 装好后重启 `dsh web`，打开任意会话即可看到背景。设置面板在对话区右下角。
+
+| 浅色主题 | 空态满强度 | 设置面板 |
+| --- | --- | --- |
+| ![浅色](docs/light.png) | ![空态](docs/hero.png) | ![面板](docs/panel.png) |
 
 ## 设置
 
