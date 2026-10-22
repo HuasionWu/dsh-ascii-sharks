@@ -2,18 +2,18 @@
 
 # ASCII Sharks
 
-**鲨鱼与鱼群，用 ASCII 字符画在对话区背景里游动。**
-
-A DeepSeek Harness wallpaper plugin, ported from
-[stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks).
-
-`dsh-ascii-sharks` v0.1.4 · [HuasionWu/dsh-ascii-sharks](https://github.com/HuasionWu/dsh-ascii-sharks)
-
 </div>
 
-![深色主题：鲨鱼与鱼群在对话列背后巡游](docs/dark.png)
-
 ---
+
+[English](README.en.md) | 中文
+
+**鲨鱼与鱼群，用 ASCII 字符画在对话区背景里游动。**
+
+`dsh-ascii-sharks` v0.1.4 · [HuasionWu/dsh-ascii-sharks](https://github.com/HuasionWu/dsh-ascii-sharks)
+· 移植自 [stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks)
+
+![深色主题：鲨鱼与鱼群在对话列背后巡游](docs/dark.png)
 
 ## 它是什么
 
