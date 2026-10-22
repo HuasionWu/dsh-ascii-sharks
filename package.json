@@ -1,0 +1,56 @@
+{
+  "name": "dsh-ascii-sharks",
+  "version": "0.1.0",
+  "description": "ASCII sharks and schooling fish swimming behind the DeepSeek Harness conversation column.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "lib/client.js",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "check": "npm run typecheck && npm run build",
+    "harness": "node scripts/serve.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "ascii-art",
+    "animation",
+    "canvas",
+    "wallpaper",
+    "shark"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}

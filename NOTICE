@@ -1,0 +1,15 @@
+dsh-ascii-sharks bundles a modified version of ascii-sharks.
+
+  ascii-sharks — https://github.com/stackedlol/ascii-sharks
+  Copyright (c) stackedlol
+  No licence file was published with the original project; the source is
+  redistributed here with attribution and modification notes in README.md.
+
+Modifications for DeepSeek Harness:
+  - the canvas is transparent instead of opaque black, so the host app's own
+    background shows through;
+  - colour, ink direction, grid strength and skin brightness are palette-driven
+    instead of hard-coded, which adds a light theme;
+  - the engine is wrapped in a wallpaper host that follows the conversation
+    column, fades against the empty-state hero, and exposes a settings panel;
+  - a settings model, a DSH client bundle and its build script were added.

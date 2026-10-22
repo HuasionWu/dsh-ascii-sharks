@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>ASCII Sharks — plugin harness</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--dsw-alias-bg-base, #0f1115);
+    color: #e6eefc;
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  /* A miniature of the DSH shell: sidebar + centre column, both opaque. */
+  #app { display: flex; height: 100%; }
+  #sidebar {
+    width: 260px; flex: 0 0 260px;
+    background: #0b0d12;
+    border-right: .5px solid #1e2430;
+  }
+  #centerCol {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
+    background: #0f1115;
+  }
+  #transcript { flex: 1; overflow: auto; padding: 24px 32px; }
+  #composer { padding: 16px 32px 28px; }
+  .bubble {
+    max-width: 620px; margin: 0 0 16px; padding: 12px 16px;
+    border-radius: 12px; background: #171b23; border: 1px solid #232a36;
+  }
+  .bubble.user { margin-left: auto; background: #1b2436; }
+  #composer .box {
+    border: 1px solid #2a3342; border-radius: 14px; padding: 14px 16px;
+    background: #141821; color: #6d7a90;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar"></aside>
+  <main id="centerCol" class="_centerCol">
+    <div id="transcript">
+      <div class="bubble user">做一个 ascii-sharks 壁纸插件</div>
+      <div class="bubble">正在构建插件与构建脚本……</div>
+      <div class="bubble">这里是一段较长的对话内容，用来验证壁纸位于文字之下、且在滚动时保持固定。</div>
+      <div class="bubble user">好</div>
+      <div class="bubble">壁纸应当透过这些内容可见，但不应干扰阅读。</div>
+    </div>
+    <div id="composer"><div class="box">给 DeepSeek Harness 发送消息…</div></div>
+  </main>
+</div>
+
+<!-- The host serves React as a platform module; the harness fakes that table. -->
+<!-- React comes from the workspace install: the harness is a dev-only page. -->
+<script src="/node_modules/react/umd/react.development.js"></script>
+<script src="/node_modules/react-dom/umd/react-dom.development.js"></script>
+<script>
+  // Minimal stand-ins for the pieces of the DSH client kernel the plugin uses.
+  window.__registry = {};
+  window.__ModuleLoader__ = {
+    load({ id, factory }) { window.__registry[id] = factory; },
+  };
+  window.__modules = {
+    react: window.React,
+  };
+  window.__require = (id) => {
+    if (id in window.__modules) return window.__modules[id];
+    throw new Error("harness: no such platform module: " + id);
+  };
+  // Slots stub: register() keeps the component, and the harness mounts the
+  // first registered component into the conversation column, like the shell.
+  window.__slots = [];
+  window.__ctx = {
+    slots: {
+      inject(name, factory) { window.__injected = { name, factory }; },
+      register(options, component) {
+        window.__slots.push({ options, component });
+        return component;
+      },
+    },
+  };
+</script>
+<script>
+  // ?theme=light flips the mock shell to the light palette, so the plugin's
+  // automatic theme detection can be exercised without the real app.
+  if (new URLSearchParams(location.search).get("theme") === "light") {
+    document.body.style.background = "#f4f6fa";
+    document.body.style.color = "#1b2333";
+    document.getElementById("sidebar").style.background = "#eceff5";
+    document.getElementById("centerCol").style.background = "#f7f8fb";
+    for (const b of document.querySelectorAll(".bubble")) {
+      b.style.background = "#ffffff";
+      b.style.borderColor = "#dde3ee";
+    }
+    const box = document.querySelector("#composer .box");
+    box.style.background = "#ffffff";
+    box.style.borderColor = "#dde3ee";
+    box.style.color = "#7b869c";
+  }
+  // ?hero=1 hides the transcript so the empty-state path can be checked.
+  if (new URLSearchParams(location.search).get("hero") === "1") {
+    document.getElementById("transcript").style.display = "none";
+    // The real shell tags the empty-state composer wrapper with this class;
+    // the plugin uses it to tell "new session" from "conversation".
+    document.getElementById("composer").className = "_composerHero";
+  }
+</script>
+<script src="/lib/client.js"></script>
+<script>
+  // Boot the plugin the way the shell does: materialise the module, then apply.
+  const factory = window.__registry["dsh-ascii-sharks"];
+  if (!factory) throw new Error("harness: plugin bundle did not register");
+  const mod = factory(window.__require);
+  window.__mod = mod;
+  // The plugin injects into conversation.input.dock; run that injection now.
+  if (typeof mod.apply === "function") mod.apply(window.__ctx);
+  const injected = window.__injected;
+  if (!injected) throw new Error("harness: plugin did not inject a slot");
+  injected.factory();
+  const slot = window.__slots[0];
+  if (!slot) throw new Error("harness: plugin did not register a component");
+
+  // Mount it where the real shell would: the `conversation.input.dock` slot
+  // lives inside the composer, which is also what the plugin inspects to tell
+  // the empty-state hero from a live conversation.
+  const mount = document.createElement("div");
+  mount.id = "slot-host";
+  mount.style.display = "contents";
+  document.getElementById("composer").appendChild(mount);
+  window.ReactDOM.createRoot(mount).render(
+    window.React.createElement(slot.component, {})
+  );
+</script>
+</body>
+</html>
