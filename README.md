@@ -7,6 +7,8 @@
 A DeepSeek Harness wallpaper plugin, ported from
 [stackedlol/ascii-sharks](https://github.com/stackedlol/ascii-sharks).
 
+`dsh-ascii-sharks` v0.1.0 · [HuasionWu/dsh-ascii-sharks](https://github.com/HuasionWu/dsh-ascii-sharks)
+
 </div>
 
 ![深色主题：鲨鱼与鱼群在对话列背后巡游](docs/dark.png)
@@ -34,12 +36,16 @@ dsh plugin --profile desktop add dsh-ascii-sharks
 或者从源码装：
 
 ```bash
-git clone git@github.com:HuasionWu/dsh-ascii-sharks.git
+git clone https://github.com/HuasionWu/dsh-ascii-sharks.git
 cd dsh-ascii-sharks
 npm install
 npm run build
 dsh plugin --profile desktop add .
 ```
+
+> `desktop` 这个 profile 由 Electron 应用独占，命令行改不动它。若遇到
+> `profile "desktop" is managed exclusively by the Electron application`，
+> 请在应用内的插件市场里添加，或换一个 profile（如 `dsh plugin --profile web add .`）。
 
 装好后重启 `dsh web`，打开任意会话即可看到背景。设置面板在对话区右下角。
 
