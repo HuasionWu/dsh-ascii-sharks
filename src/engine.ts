@@ -183,11 +183,15 @@ export class WallpaperEngine {
     const p = this.world.pointer;
     p.x = x;
     p.y = y;
-    p.active = inside && e.pointerType !== "touch" && this.interactive;
+    p.active = inside && e.pointerType !== "touch" && this.interactive && !isUiTarget(e.target);
   };
 
   private onPointerDown = (e: PointerEvent) => {
     if (!this.interactive) return;
+    // Presses on buttons, sliders and the settings panel belong to the app, not
+    // to the water: without this the panel would ripple the wallpaper on every
+    // drag.
+    if (isUiTarget(e.target)) return;
     const { x, y, inside } = this.toLocal(e);
     if (inside && !this.reducedMotion.matches) this.world.splash(x, y);
   };
@@ -195,4 +199,15 @@ export class WallpaperEngine {
   private onPointerLeave = () => {
     this.world.pointer.active = false;
   };
+}
+
+/** True when the event landed on interactive chrome rather than the water. */
+function isUiTarget(target: EventTarget | null): boolean {
+  const el = target instanceof Element ? target : null;
+  if (!el) return false;
+  return (
+    el.closest(
+      'button, a, input, textarea, select, option, label, summary, [contenteditable=""], [contenteditable="true"], [role="button"], [role="tab"], [role="menuitem"], [role="slider"], [role="switch"], [role="checkbox"], [data-dsh-ascii-sharks-tuner]',
+    ) !== null
+  );
 }

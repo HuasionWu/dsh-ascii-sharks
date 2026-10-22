@@ -41,6 +41,8 @@ export interface Settings {
   accent: string;
   /** Splash ripples on click. */
   interactive: boolean;
+  /** Where the 🦈 button was dragged to (viewport px, top-left); null = default corner. */
+  buttonPos: { x: number; y: number } | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -55,6 +57,7 @@ export const DEFAULT_SETTINGS: Settings = {
   fishDensity: 1,
   accent: "",
   interactive: true,
+  buttonPos: null,
 };
 
 const STORAGE_KEY = "dsh-ascii-sharks/settings/v1";
@@ -83,7 +86,17 @@ export function normalizeSettings(input: Partial<Settings> | null | undefined): 
     fishDensity: clampNum(raw.fishDensity, 0.2, 3, DEFAULT_SETTINGS.fishDensity),
     accent: typeof raw.accent === "string" ? raw.accent : DEFAULT_SETTINGS.accent,
     interactive: raw.interactive !== false,
+    buttonPos: readPos(raw.buttonPos),
   };
+}
+
+/** A stored drag position is only trusted when it is a pair of finite numbers. */
+function readPos(input: unknown): { x: number; y: number } | null {
+  if (!input || typeof input !== "object") return null;
+  const p = input as { x?: unknown; y?: unknown };
+  const x = Number(p.x);
+  const y = Number(p.y);
+  return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
 }
 
 export function readSettings(): Settings {

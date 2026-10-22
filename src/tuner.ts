@@ -94,7 +94,11 @@ export function createTuner(options: TunerOptions): TunerHandle {
 
   const wrap = document.createElement("div");
   wrap.setAttribute("data-dsh-ascii-sharks-tuner", "");
-  wrap.style.cssText = "position:fixed;z-index:2147483000;pointer-events:none;";
+  // A fixed-size box holding just the button; the panel is positioned against it
+  // absolutely so opening the panel never shifts the button out from under the
+  // pointer the user just grabbed.
+  wrap.style.cssText =
+    "position:fixed;z-index:2147483000;pointer-events:none;width:34px;height:34px;";
 
   // Matches the composer's send button (34px, pill radius, solid accent fill) so
   // the entry point reads as part of the app instead of a faint decoration.
@@ -114,6 +118,8 @@ export function createTuner(options: TunerOptions): TunerHandle {
     "place-items:center",
     "line-height:1",
     "cursor:pointer",
+    "touch-action:none",
+    "user-select:none",
     "transition:filter .18s ease,transform .18s ease",
     "box-shadow:0 2px 10px rgba(0,0,0,.28)",
   ].join(";");
@@ -132,7 +138,12 @@ export function createTuner(options: TunerOptions): TunerHandle {
   panel.style.cssText = [
     "pointer-events:auto",
     "display:none",
-    "margin-top:8px",
+    "position:absolute",
+    "top:calc(100% + 8px)",
+    "right:0",
+    // border-box so the declared width is the width that ends up on screen;
+    // otherwise padding and border push the panel past the viewport edge.
+    "box-sizing:border-box",
     `width:${PANEL_WIDTH}px`,
     "padding:12px 14px 14px",
     "border-radius:12px",
@@ -220,9 +231,106 @@ export function createTuner(options: TunerOptions): TunerHandle {
     panel.style.display = next ? "block" : "none";
     gear.replaceChildren(next ? closeIcon : sharkIcon);
     gear.setAttribute("aria-expanded", next ? "true" : "false");
+    if (next) fitPanel();
   };
+
+  /* ------------------------------------------------------------------ drag */
+  // The button is dragged around the viewport and its position is remembered.
+  // A press only counts as a drag after the pointer travels a few pixels, so a
+  // plain click still toggles the panel.
+  const BTN = 34;
+  const EDGE = 8;
+  const DRAG_SLOP = 4;
+  let pos: { x: number; y: number } | null = null;
+  let drag: { id: number; dx: number; dy: number; startX: number; startY: number; moved: boolean } | null = null;
+  let suppressClick = false;
+
+  const clampX = (x: number) => Math.min(Math.max(EDGE, x), Math.max(EDGE, window.innerWidth - BTN - EDGE));
+  const clampY = (y: number) => Math.min(Math.max(EDGE, y), Math.max(EDGE, window.innerHeight - BTN - EDGE));
+
+  const applyPos = () => {
+    if (!pos) return;
+    wrap.style.left = `${pos.x}px`;
+    wrap.style.top = `${pos.y}px`;
+    wrap.style.right = "auto";
+    wrap.style.bottom = "auto";
+  };
+
+  // Keep the panel inside the viewport: it opens below the button and flips
+  // above it when the space underneath is not enough but the space above is.
+  function fitPanel() {
+    if (!pos) return;
+    const width = Math.min(PANEL_WIDTH, window.innerWidth - EDGE * 2);
+    panel.style.width = `${width}px`;
+    // Align the panel's right edge with the button's, then clamp it into the
+    // viewport. Doing the maths in viewport coordinates avoids the case where
+    // aligning to either edge of the 34px wrapper still runs off screen.
+    const left = Math.min(Math.max(EDGE, pos.x + BTN - width), window.innerWidth - EDGE - width);
+    panel.style.left = `${left - pos.x}px`;
+    panel.style.right = "auto";
+
+    const below = window.innerHeight - (pos.y + BTN) - EDGE;
+    const above = pos.y - EDGE;
+    // Measured after display:block, so the panel's natural height is known.
+    const natural = panel.scrollHeight || 0;
+    const flip = natural > below && above > below;
+    panel.style.top = flip ? "auto" : "calc(100% + 8px)";
+    panel.style.bottom = flip ? "calc(100% + 8px)" : "auto";
+    const room = (flip ? above : below) - 8;
+    panel.style.maxHeight = `${Math.min(Math.max(180, room), Math.round(window.innerHeight * 0.7))}px`;
+  }
+
   gear.setAttribute("aria-expanded", "false");
-  gear.addEventListener("click", () => setOpen(!open));
+  gear.addEventListener("click", () => {
+    if (suppressClick) {
+      suppressClick = false;
+      return;
+    }
+    setOpen(!open);
+  });
+  gear.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    const rect = wrap.getBoundingClientRect();
+    drag = {
+      id: event.pointerId,
+      dx: event.clientX - rect.left,
+      dy: event.clientY - rect.top,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+    gear.setPointerCapture(event.pointerId);
+  });
+  gear.addEventListener("pointermove", (event) => {
+    if (!drag || event.pointerId !== drag.id) return;
+    if (!drag.moved) {
+      const travel = Math.abs(event.clientX - drag.startX) + Math.abs(event.clientY - drag.startY);
+      if (travel < DRAG_SLOP) return;
+      drag.moved = true;
+      gear.style.cursor = "grabbing";
+      gear.style.transition = "none";
+    }
+    pos = { x: clampX(event.clientX - drag.dx), y: clampY(event.clientY - drag.dy) };
+    applyPos();
+    // The panel rides along as a child, but it still has to re-decide whether it
+    // opens above or below the button as the button moves past mid-screen.
+    if (open) fitPanel();
+  });
+  const endDrag = (event: PointerEvent) => {
+    if (!drag || event.pointerId !== drag.id) return;
+    const moved = drag.moved;
+    drag = null;
+    gear.style.cursor = "pointer";
+    gear.style.transition = "filter .18s ease,transform .18s ease";
+    if (gear.hasPointerCapture(event.pointerId)) gear.releasePointerCapture(event.pointerId);
+    if (moved) {
+      suppressClick = true;
+      options.set({ ...options.get(), buttonPos: pos });
+      if (open) fitPanel();
+    }
+  };
+  gear.addEventListener("pointerup", endDrag);
+  gear.addEventListener("pointercancel", endDrag);
   gear.addEventListener("mouseenter", () => {
     gear.style.filter = "brightness(1.08)";
   });
@@ -231,21 +339,41 @@ export function createTuner(options: TunerOptions): TunerHandle {
   });
   wrap.append(gear, panel);
 
+  // Restore a remembered position, or fall back to the bottom-right corner.
+  const stored = options.get().buttonPos;
+  if (stored) {
+    pos = { x: clampX(stored.x), y: clampY(stored.y) };
+    applyPos();
+  }
+
   return {
     el: wrap,
     place(rect: DOMRect) {
-      const right = Math.max(12, window.innerWidth - rect.right + 16);
-      wrap.style.right = `${right}px`;
-      wrap.style.left = "auto";
-      wrap.style.top = "auto";
-      wrap.style.bottom = "96px";
-      if (open) {
-        // Keep the panel on screen when the column is narrow.
-        const room = window.innerWidth - right - 16;
-        panel.style.width = `${Math.max(200, Math.min(PANEL_WIDTH, room))}px`;
+      if (!pos) {
+        // Default anchor: just above the composer, aligned to the column's right
+        // edge. Recomputed on resize so the fallback stays put.
+        pos = {
+          x: clampX(window.innerWidth - Math.max(12, window.innerWidth - rect.right + 16) - BTN),
+          y: clampY(window.innerHeight - 96 - BTN),
+        };
+        applyPos();
+      } else {
+        // A remembered spot may be off-screen after a resize or monitor change.
+        const x = clampX(pos.x);
+        const y = clampY(pos.y);
+        if (x !== pos.x || y !== pos.y) {
+          pos = { x, y };
+          applyPos();
+        }
       }
+      if (open) fitPanel();
     },
     sync(s: Settings) {
+      if (s.buttonPos && (!pos || s.buttonPos.x !== pos.x || s.buttonPos.y !== pos.y)) {
+        pos = { x: clampX(s.buttonPos.x), y: clampY(s.buttonPos.y) };
+        applyPos();
+        if (open) fitPanel();
+      }
       opacityInput.value = String(s.opacity);
       heroInput.value = String(s.heroOpacity);
       cellInput.value = String(s.cellSize);
